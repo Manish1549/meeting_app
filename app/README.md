@@ -1309,13 +1309,4 @@ Unit Tests    ✅
 Frontend      ✅
 ```
 
-The project is currently designed as a simple demonstration application and can be extended with persistent storage, authentication, and a more advanced frontend when required.
 
-```
-
-### One recommendation
-
-Since this is for a **demo/interview assignment**, this README is detailed enough to show that you understand the architecture—not just that you made endpoints.
-
-I'd also add a small **Screenshots** section at the top once your frontend is finalized. That makes the GitHub repository look considerably more polished.
-```
