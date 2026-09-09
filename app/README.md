@@ -1,14 +1,9 @@
-Absolutely. Here’s a **detailed, interview/demo-ready `README.md`** for your Appointment Board project. It documents the architecture, LLD decisions, API endpoints, business rules, setup, testing, and frontend.
-
-You can create `README.md` inside `D:\appointment_board\app` and paste this:
-
 ````markdown
 # Appointment Board
 
 A simple appointment management system built with **FastAPI, Python, Pydantic, and vanilla HTML/CSS/JavaScript**.
 
 The application allows a small team to create, view, update, complete, and cancel appointments while preventing conflicting time slots.
-
 ---
 
 ## Features
