@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Appointment Board</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: Inter, Arial, sans-serif;
+            background: #f5f7fb;
+            color: #1f2937;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+        }
+
+        h1 {
+            font-size: 30px;
+            color: #111827;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            margin-top: 5px;
+        }
+
+        button {
+            border: none;
+            cursor: pointer;
+            border-radius: 8px;
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .primary {
+            background: #2563eb;
+            color: white;
+        }
+
+        .primary:hover {
+            background: #1d4ed8;
+        }
+
+        .filters {
+            display: flex;
+            gap: 12px;
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 22px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .filters input,
+        .filters select {
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            background: white;
+        }
+
+        .filters input {
+            flex: 1;
+        }
+
+        .appointments {
+            display: grid;
+            gap: 14px;
+        }
+
+        .appointment-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            border-left: 4px solid #2563eb;
+        }
+
+        .appointment-card.cancelled {
+            border-left-color: #9ca3af;
+            opacity: 0.75;
+        }
+
+        .appointment-card.completed {
+            border-left-color: #16a34a;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .description {
+            color: #6b7280;
+            margin-bottom: 14px;
+        }
+
+        .time {
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 16px;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge.scheduled {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .badge.completed {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .badge.cancelled {
+            background: #e5e7eb;
+            color: #4b5563;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .edit {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .complete {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .cancel {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 50px;
+            background: white;
+            border-radius: 12px;
+            color: #6b7280;
+        }
+
+        /* Modal */
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.45);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            width: 100%;
+            max-width: 500px;
+            background: white;
+            border-radius: 14px;
+            padding: 24px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .close {
+            background: transparent;
+            font-size: 24px;
+            padding: 0;
+            color: #6b7280;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .secondary {
+            background: #f3f4f6;
+            color: #374151;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #b91c1c;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 14px;
+        }
+
+        @media (max-width: 650px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .filters {
+                flex-direction: column;
+            }
+
+            .card-header {
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .actions {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+        <div>
+            <h1>Appointment Board</h1>
+            <p class="subtitle">Manage your team's appointments</p>
+        </div>
+
+        <button class="primary" onclick="openCreateModal()">
+            + New Appointment
+        </button>
+    </header>
+
+    <div class="filters">
+        <input
+            type="date"
+            id="dateFilter"
+            onchange="loadAppointments()"
+        >
+
+        <select id="statusFilter" onchange="loadAppointments()">
+            <option value="">All Statuses</option>
+            <option value="SCHEDULED">Scheduled</option>
+            <option value="COMPLETED">Completed</option>
+            <option value="CANCELLED">Cancelled</option>
+        </select>
+
+        <button class="secondary" onclick="clearFilters()">
+            Clear
+        </button>
+    </div>
+
+    <div id="error" class="error"></div>
+
+    <div id="appointments" class="appointments"></div>
+
+</div>
+
+
+<!-- Modal -->
+
+<div id="modalOverlay" class="modal-overlay">
+
+    <div class="modal">
+
+        <div class="modal-header">
+            <h2 id="modalTitle">New Appointment</h2>
+
+            <button class="close" onclick="closeModal()">
+                ×
+            </button>
+        </div>
+
+        <form onsubmit="saveAppointment(event)">
+
+            <div class="form-group">
+                <label>Title</label>
+                <input
+                    type="text"
+                    id="title"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label>Description</label>
+                <textarea
+                    id="description"
+                    required
+                ></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Start Time</label>
+                <input
+                    type="datetime-local"
+                    id="startTime"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label>End Time</label>
+                <input
+                    type="datetime-local"
+                    id="endTime"
+                    required
+                >
+            </div>
+
+            <div class="form-actions">
+                <button
+                    type="button"
+                    class="secondary"
+                    onclick="closeModal()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary"
+                >
+                    Save Appointment
+                </button>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+
+<script>
+
+const API_URL = "http://127.0.0.1:8000";
+
+let editingAppointmentId = null;
+
+
+// -------------------------
+// Load appointments
+// -------------------------
+
+async function loadAppointments() {
+
+    try {
+
+        hideError();
+
+        const date = document.getElementById("dateFilter").value;
+        const status = document.getElementById("statusFilter").value;
+
+        const params = new URLSearchParams();
+
+        if (date) {
+            params.append("appointment_date", date);
+        }
+
+        if (status) {
+            params.append("status", status);
+        }
+
+        const url = `${API_URL}/appointments?${params.toString()}`;
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error("Failed to load appointments");
+        }
+
+        const appointments = await response.json();
+
+        renderAppointments(appointments);
+
+    } catch (error) {
+
+        showError(error.message);
+
+    }
+}
+
+
+// -------------------------
+// Render cards
+// -------------------------
+
+function renderAppointments(appointments) {
+
+    const container = document.getElementById("appointments");
+
+    if (appointments.length === 0) {
+
+        container.innerHTML = `
+            <div class="empty">
+                <h3>No appointments found</h3>
+                <p>Create a new appointment to get started.</p>
+            </div>
+        `;
+
+        return;
+    }
+
+    appointments.sort(
+        (a, b) =>
+            new Date(a.start_time) - new Date(b.start_time)
+    );
+
+    container.innerHTML = appointments
+        .map(appointment => createCard(appointment))
+        .join("");
+}
+
+
+function createCard(appointment) {
+
+    const status = appointment.status.toLowerCase();
+
+    const start = formatDateTime(appointment.start_time);
+    const end = formatTime(appointment.end_time);
+
+    let actions = "";
+
+    if (appointment.status === "SCHEDULED") {
+
+        actions = `
+            <button
+                class="edit"
+                onclick="openEditModal(${appointment.appointment_id})"
+            >
+                Edit
+            </button>
+
+            <button
+                class="complete"
+                onclick="completeAppointment(${appointment.appointment_id})"
+            >
+                Complete
+            </button>
+
+            <button
+                class="cancel"
+                onclick="cancelAppointment(${appointment.appointment_id})"
+            >
+                Cancel
+            </button>
+        `;
+    }
+
+    return `
+        <div class="appointment-card ${status}">
+
+            <div class="card-header">
+
+                <div class="title">
+                    ${escapeHtml(appointment.title)}
+                </div>
+
+                <span class="badge ${status}">
+                    ${appointment.status}
+                </span>
+
+            </div>
+
+            <div class="description">
+                ${escapeHtml(appointment.description)}
+            </div>
+
+            <div class="time">
+                📅 ${start} — ${end}
+            </div>
+
+            <div class="actions">
+                ${actions}
+            </div>
+
+        </div>
+    `;
+}
+
+
+// -------------------------
+// Create / Edit modal
+// -------------------------
+
+function openCreateModal() {
+
+    editingAppointmentId = null;
+
+    document.getElementById("modalTitle").textContent =
+        "New Appointment";
+
+    document.querySelector("form").reset();
+
+    document.getElementById("modalOverlay")
+        .classList.add("show");
+}
+
+
+async function openEditModal(id) {
+
+    try {
+
+        const response =
+            await fetch(`${API_URL}/appointments`);
+
+        const appointments = await response.json();
+
+        const appointment =
+            appointments.find(
+                a => a.appointment_id === id
+            );
+
+        if (!appointment) {
+            showError("Appointment not found");
+            return;
+        }
+
+        editingAppointmentId = id;
+
+        document.getElementById("modalTitle").textContent =
+            "Edit Appointment";
+
+        document.getElementById("title").value =
+            appointment.title;
+
+        document.getElementById("description").value =
+            appointment.description;
+
+        document.getElementById("startTime").value =
+            toLocalDateTime(appointment.start_time);
+
+        document.getElementById("endTime").value =
+            toLocalDateTime(appointment.end_time);
+
+        document.getElementById("modalOverlay")
+            .classList.add("show");
+
+    } catch (error) {
+
+        showError("Could not load appointment");
+
+    }
+}
+
+
+function closeModal() {
+
+    document.getElementById("modalOverlay")
+        .classList.remove("show");
+
+    editingAppointmentId = null;
+}
+
+
+// -------------------------
+// Create / Update
+// -------------------------
+
+async function saveAppointment(event) {
+
+    event.preventDefault();
+
+    hideError();
+
+    const appointment = {
+
+        title: document.getElementById("title").value,
+
+        description:
+            document.getElementById("description").value,
+
+        start_time:
+            new Date(
+                document.getElementById("startTime").value
+            ).toISOString(),
+
+        end_time:
+            new Date(
+                document.getElementById("endTime").value
+            ).toISOString()
+    };
+
+
+    try {
+
+        let response;
+
+        if (editingAppointmentId === null) {
+
+            response = await fetch(
+                `${API_URL}/appointments`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify(appointment)
+                }
+            );
+
+        } else {
+
+            response = await fetch(
+                `${API_URL}/appointments/${editingAppointmentId}`,
+                {
+                    method: "PUT",
+
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+
+                    body: JSON.stringify(appointment)
+                }
+            );
+        }
+
+
+        if (!response.ok) {
+
+            const data = await response.json();
+
+            throw new Error(
+                data.detail || "Failed to save appointment"
+            );
+        }
+
+
+        closeModal();
+
+        await loadAppointments();
+
+    } catch (error) {
+
+        showError(error.message);
+
+    }
+}
+
+
+// -------------------------
+// Complete
+// -------------------------
+
+async function completeAppointment(id) {
+
+    if (!confirm("Mark this appointment as completed?")) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/appointments/${id}/complete`,
+                {
+                    method: "PATCH"
+                }
+            );
+
+        if (!response.ok) {
+
+            const data = await response.json();
+
+            throw new Error(
+                data.detail || "Failed to complete appointment"
+            );
+        }
+
+        await loadAppointments();
+
+    } catch (error) {
+
+        showError(error.message);
+
+    }
+}
+
+
+// -------------------------
+// Cancel
+// -------------------------
+
+async function cancelAppointment(id) {
+
+    if (!confirm("Cancel this appointment?")) {
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/appointments/${id}/cancel`,
+                {
+                    method: "PATCH"
+                }
+            );
+
+        if (!response.ok) {
+
+            const data = await response.json();
+
+            throw new Error(
+                data.detail || "Failed to cancel appointment"
+            );
+        }
+
+        await loadAppointments();
+
+    } catch (error) {
+
+        showError(error.message);
+
+    }
+}
+
+
+// -------------------------
+// Filters
+// -------------------------
+
+function clearFilters() {
+
+    document.getElementById("dateFilter").value = "";
+    document.getElementById("statusFilter").value = "";
+
+    loadAppointments();
+}
+
+
+// -------------------------
+// Helpers
+// -------------------------
+
+function formatDateTime(value) {
+
+    return new Date(value).toLocaleDateString(
+        "en-IN",
+        {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+}
+
+
+function formatTime(value) {
+
+    return new Date(value).toLocaleTimeString(
+        "en-IN",
+        {
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+}
+
+
+function toLocalDateTime(value) {
+
+    const date = new Date(value);
+
+    const offset =
+        date.getTimezoneOffset() * 60000;
+
+    return new Date(
+        date.getTime() - offset
+    )
+        .toISOString()
+        .slice(0, 16);
+}
+
+
+function escapeHtml(value) {
+
+    const div = document.createElement("div");
+
+    div.textContent = value;
+
+    return div.innerHTML;
+}
+
+
+function showError(message) {
+
+    const error =
+        document.getElementById("error");
+
+    error.textContent = message;
+    error.style.display = "block";
+}
+
+
+function hideError() {
+
+    document.getElementById("error")
+        .style.display = "none";
+}
+
+
+// -------------------------
+// Initial load
+// -------------------------
+
+loadAppointments();
+
+</script>
+
+</body>
+</html>
